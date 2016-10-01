@@ -43,71 +43,140 @@ static int test_pass = 0;
 #define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
 #define EXPECT_EQ_DOUBLE(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%.17g")
 #define EXPECT_EQ_STRING(expect, actual, len) EXPECT_EQ_BASE(strncmp((expect), (actual), (len)) == 0, expect, actual, "%s")
+#define EXPECT_TRUE(actual) EXPECT_EQ_BASE((actual) == 1, 1, actual, "%d");
+#define EXPECT_FALSE(actual) EXPECT_EQ_BASE((actual) == 0, 0, actual, "%d");
 
 /* test macro */
 
 #define TEST_NUMBER(expect, json) \
     do { \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         double ret_number; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(LEPT_NUMBER, ret_type, lept_type_string); \
         ret_number = lept_get_number(&v); \
         EXPECT_EQ_DOUBLE(expect, ret_number); \
+        lept_free(&v); \
     } while(0)
 
-#define TEST_OK(expect, json) \
+#define TEST_STRING(expect, json) \
+    do { \
+        lept_value v; \
+        lept_init(&v); \
+        int ret_parse, ret_type; \
+        const char* ret_string; \
+        ret_parse = lept_parse(&v, json); \
+        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string); \
+        ret_type = lept_get_type(&v); \
+        EXPECT_EQ_TEST(LEPT_STRING, ret_type, lept_type_string); \
+        ret_string = lept_get_string(&v); \
+        EXPECT_EQ_STRING(expect, ret_string, lept_get_string_length(&v)); \
+        lept_free(&v); \
+    } while(0)
+
+#define TEST_LITERAL(expect, json) \
     do{ \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(expect, ret_type, lept_type_string); \
+        lept_free(&v); \
     } while(0)
+
+// #define TEST_ERROR(error, json) \
+//     do { \
+//         lept_value v; \
+//         lept_init(&v); \
+//         int ret_parse; \
+//         ret_parse = lept_parse(&v, json); \
+//         EXPECT_EQ_TEST(error, ret_parse, lept_parse_xxx_string); \
+//         lept_free(&v); \
+//     } while(0)
 
 #define TEST_EXPECT_VALUE(json) \
     do { \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_EXPECT_VALUE, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_EXPECT_VALUE, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(LEPT_NULL, ret_type, lept_type_string); \
+        lept_free(&v); \
     } while(0)
 
 #define TEST_INVALID_VALUE(json) \
     do { \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_INVALID_VALUE, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_INVALID_VALUE, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(LEPT_NULL, ret_type, lept_type_string); \
+        lept_free(&v); \
     } while(0)
 
 #define TEST_NUMBER_TOO_BIG(json) \
     do { \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_NUMBER_TOO_BIG, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_NUMBER_TOO_BIG, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(LEPT_NULL, ret_type, lept_type_string); \
+        lept_free(&v); \
     } while(0)
-
 
 #define TEST_ROOT_NOT_SINGULAR(expect, json) \
     do { \
         lept_value v; \
+        lept_init(&v); \
         int ret_parse, ret_type; \
         ret_parse = lept_parse(&v, json); \
-        EXPECT_EQ_TEST(LEPT_PARSE_ROOT_NOT_SINGULAR, ret_parse, lept_parse_string); \
+        EXPECT_EQ_TEST(LEPT_PARSE_ROOT_NOT_SINGULAR, ret_parse, lept_parse_xxx_string); \
         ret_type = lept_get_type(&v); \
         EXPECT_EQ_TEST(expect, ret_type, lept_type_string); \
+        lept_free(&v); \
+    } while(0)
+
+#define TEST_MISS_QUOTATION_MARK(json) \
+    do { \
+        lept_value v; \
+        int ret_parse, ret_type; \
+        lept_init(&v); \
+        ret_parse = lept_parse(&v, json); \
+        EXPECT_EQ_TEST(LEPT_PARSE_MISS_QUOTATION_MARK, ret_parse, lept_parse_xxx_string); \
+        ret_type = lept_get_type(&v); \
+        EXPECT_EQ_TEST(LEPT_NULL, ret_type, lept_type_string); \
+    } while (0)
+
+#define TEST_INVALID_ESCAPE(json) \
+    do { \
+        lept_value v; \
+        int ret_parse; \
+        lept_init(&v); \
+        ret_parse = lept_parse(&v, json); \
+        EXPECT_EQ_TEST(LEPT_PARSE_INVALID_ESCAPE, ret_parse, lept_parse_xxx_string); \
+        lept_free(&v); \
+    } while(0)
+
+#define TEST_INVALID_STRING_CHAR(json) \
+    do { \
+        lept_value v; \
+        int ret_parse; \
+        lept_init(&v); \
+        ret_parse = lept_parse(&v, json); \
+        EXPECT_EQ_TEST(LEPT_PARSE_INVALID_STRING_CHAR, ret_parse, lept_parse_xxx_string); \
+        lept_free(&v); \
     } while(0)
 
 /* test case */
@@ -145,14 +214,24 @@ static void test_parse_number() {
     TEST_NUMBER(-1.7976931348623157e+308, "-1.7976931348623157e+308");
 }
 
+static void test_parse_string() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+    TEST_STRING("12SDFE3", "\"12SDFE3\"");
+    TEST_STRING("12ASDF\"AS3", "\"12ASDF\\\"AS3\"");
+    TEST_STRING("Hello\nWorld", "\"Hello\\nWorld\"");
+    TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
+}
+
 static void test_parse_ok() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
-    TEST_OK(LEPT_NULL, "null");
-    TEST_OK(LEPT_FALSE, "false");
-    TEST_OK(LEPT_TRUE, "true");
+    TEST_LITERAL(LEPT_NULL, "null");
+    TEST_LITERAL(LEPT_FALSE, "false");
+    TEST_LITERAL(LEPT_TRUE, "true");
 
     test_parse_number();
+    test_parse_string();
 }
 
 static void test_parse_expect_value() {
@@ -195,8 +274,16 @@ static void test_parse_number_too_big() {
     TEST_NUMBER_TOO_BIG("-123E123123122");
 }
 
+static void test_parse_miss_quotation_mark() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+    TEST_MISS_QUOTATION_MARK("\"");
+    TEST_MISS_QUOTATION_MARK("\"ABC");
+}
+
 static void test_access_string() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
     lept_value v;
     lept_init(&v);
     lept_set_string(&v, "", 0);
@@ -208,13 +295,54 @@ static void test_access_string() {
     lept_free(&v);
 }
 
+static void test_access_boolean() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+    lept_value v;
+    lept_init(&v);
+    lept_set_string(&v, "A", 1);
+    lept_set_boolean(&v, 0);
+    EXPECT_FALSE(lept_get_boolean(&v));
+    lept_free(&v);
+}
+
+static void test_access_number() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+    lept_value v;
+    lept_init(&v);
+    lept_set_string(&v, "a", 1);
+    lept_set_number(&v, 123.1);
+    EXPECT_EQ_DOUBLE(123.1, lept_get_number(&v));
+    lept_free(&v);
+}
+
+static void test_parse_invalid_string_char() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+}
+
+static void test_parse_invalid_escape() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+    TEST_INVALID_ESCAPE("\"\\v\"");
+    TEST_INVALID_ESCAPE("\"\\x\"");
+    TEST_INVALID_ESCAPE("\"\\0\"");
+}
+
 static void test_parse() {
     test_parse_ok();
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
     test_parse_number_too_big();
+    test_parse_miss_quotation_mark();
+    test_parse_invalid_escape();
+    test_parse_invalid_string_char();
+
+    test_access_boolean();
     test_access_string();
+    test_access_number();
 }
 
 /* main */

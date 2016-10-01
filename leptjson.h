@@ -1,7 +1,7 @@
 #ifndef LEPTJSON_H__
 #define LEPTJSON_H__
 
-#include <stdlib.h>
+#include <stddef.h> /* size_t */
 
 typedef enum {
 	LEPT_NULL, LEPT_FALSE, LEPT_TRUE,
@@ -38,15 +38,21 @@ enum {
     LEPT_PARSE_EXPECT_VALUE,
     LEPT_PARSE_INVALID_VALUE,
     LEPT_PARSE_ROOT_NOT_SINGULAR,
-    LEPT_PARSE_NUMBER_TOO_BIG
+    LEPT_PARSE_NUMBER_TOO_BIG,
+	LEPT_PARSE_MISS_QUOTATION_MARK,
+	LEPT_PARSE_INVALID_ESCAPE,
+	LEPT_PARSE_INVALID_STRING_CHAR
 };
 
-static const char* lept_parse_string[] = {
+static const char* lept_parse_xxx_string[] = {
 	"LEPT_PARSE_OK",
 	"LEPT_PARSE_EXPECT_VALUE",
 	"LEPT_PARSE_INVALID_VALUE",
 	"LEPT_PARSE_ROOT_NOT_SINGULAR",
-	"LEPT_PARSE_NUMBER_TOO_BIG"
+	"LEPT_PARSE_NUMBER_TOO_BIG",
+	"LEPT_PARSE_MISS_QUOTATION_MARK",
+	"LEPT_PARSE_INVALID_ESCAPE",
+	"LEPT_PARSE_INVALID_STRING_CHAR"
 };
 
 #define lept_init(v) do { (v)->type = LEPT_NULL; } while(0)
