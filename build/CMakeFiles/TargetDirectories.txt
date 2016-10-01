@@ -1,0 +1,4 @@
+/Users/apple/Desktop/Json Interpreter/build/CMakeFiles/leptjson_test.dir
+/Users/apple/Desktop/Json Interpreter/build/CMakeFiles/edit_cache.dir
+/Users/apple/Desktop/Json Interpreter/build/CMakeFiles/rebuild_cache.dir
+/Users/apple/Desktop/Json Interpreter/build/CMakeFiles/leptjson.dir
