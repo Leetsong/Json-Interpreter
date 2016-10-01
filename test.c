@@ -320,6 +320,8 @@ static void test_access_number() {
 static void test_parse_invalid_string_char() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
+    TEST_INVALID_STRING_CHAR("\"\x01\"");
+    TEST_INVALID_STRING_CHAR("\"\x1F\"");
 }
 
 static void test_parse_invalid_escape() {
