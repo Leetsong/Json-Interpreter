@@ -26,6 +26,11 @@ static void lept_context_init(lept_context* c, const char* json) {
     c->top = c->size = 0;
 }
 
+static void lept_context_free(lept_context* c) {
+    assert(c->top == 0);
+    free(c->stack);
+}
+
 static void* lept_context_push(lept_context* c, size_t size) {
     void* ret;
     assert(size > 0);
@@ -199,8 +204,7 @@ int lept_parse(lept_value* v, const char* json) {
         ret = LEPT_PARSE_ROOT_NOT_SINGULAR;
     }
 
-    assert(c.top == 0);
-    free(c.stack);
+    lept_context_free(&c);
 
     return ret;
 }
