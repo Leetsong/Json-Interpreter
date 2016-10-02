@@ -53,7 +53,7 @@ static void* lept_context_pop(lept_context* c, size_t size) {
     return c->stack + (c->top -= size);
 }
 
-/* parse */
+/* parse ws */
 
 static void lept_parse_whitespace(lept_context* c) {
     const char *p = c->json;
@@ -61,6 +61,8 @@ static void lept_parse_whitespace(lept_context* c) {
         p++;
     c->json = p;
 }
+
+/* parse true, null, false */
 
 static int lept_parse_literal(lept_context* c, lept_value* v, const char* literal, lept_type type) {
   	size_t i;
@@ -77,6 +79,8 @@ static int lept_parse_literal(lept_context* c, lept_value* v, const char* litera
 
     return LEPT_PARSE_OK;
 }
+
+/* parse number */
 
 static int lept_parse_number(lept_context* c, lept_value* v) {
     const char* cur_phase = c->json;
@@ -123,16 +127,102 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
     return LEPT_PARSE_OK;
 }
 
+/* parse string */
+
 #define PUTC(c, ch) do { *(char*)lept_context_push((c), sizeof(char)) = (ch); } while(0)
+
+#define STRING_ERROR(ret) do { c->top = head; return ret; } while(0)
+
+static const char* lept_parse_hex4(const char* p, unsigned* u) {
+    char temp[5];
+
+    if(!(isxdigit(p[0]) && isxdigit(p[1]) && isxdigit(p[2]) && isxdigit(p[3]))) {
+        return NULL;
+    }
+
+    for(size_t i = 0; i < 4; i ++) {
+        temp[i] = p[i];
+    }
+    temp[4] = '\0';
+
+    sscanf(temp, "%x", u);
+
+    return p + 4;
+}
+
+static const char* lept_surrogate_handling(const char* p, unsigned* u) {
+    unsigned u2;
+
+    if(*u < 0xD800 || *u > 0xDBFF) {
+        /* dont need surrogate */
+        return p;
+    }
+
+    if(!(p[0] == '\\' && p[1] == 'u')) {
+        /** 0xFFFFFFFF is illegal in UCS, we use it as error:
+          * LEPT_PARSE_INVALID_UNICODE_SURROGATE */
+        *(int*)u = -1;
+        return NULL;
+    }
+
+    if((p = lept_parse_hex4(p+2, &u2)) == NULL) {
+        /* LEPT_PARSE_INVALID_UNICODE_HEX */
+        return NULL;
+    }
+
+    if(u2 < 0xDC00 || u2 > 0xDFFF) {
+        /** 0xFFFFFFFF is illegal in UCS, we use it as error:
+          * LEPT_PARSE_INVALID_UNICODE_SURROGATE */
+        *(int*)u = -1;
+        return NULL;
+    }
+
+    /* save codepoint */
+    *u = 0x10000 + (*u - 0xD800) * 0x400 + (u2 - 0xDC00);
+
+    return p;
+}
+
+static void lept_encode_utf8(lept_context* c, unsigned u) {
+    if(u <= 0x7F) {
+        PUTC(c, (unsigned char)u);
+        return ;
+    }
+
+    if(u <= 0x7FF) {
+        PUTC(c, 0xC0 | (u >> 6));
+        PUTC(c, 0x80 | (u & 0x3F));
+        return ;
+    }
+
+    if(u <= 0xFFFF) {
+        PUTC(c, 0xE0 | ((u >> 12) & 0x3F));
+        PUTC(c, 0x80 | ((u >>  6) & 0x3F));
+        PUTC(c, 0x80 | ( u        & 0x3F));
+        return ;
+    }
+
+    if(u <= 0x10FFFF) {
+        PUTC(c, 0xF0 | ((u >> 18) & 0xFF));
+        PUTC(c, 0x80 | ((u >> 12) & 0x3F));
+        PUTC(c, 0x80 | ((u >>  6) & 0x3F));
+        PUTC(c, 0x80 | ( u        & 0x3F));
+        return ;
+    }
+
+    /* never reach here */
+    assert(0);
+}
 
 static int lept_parse_string(lept_context* c, lept_value* v) {
     size_t head = c->top, len;
     const char* p = c->json;
+    unsigned u; /* codepoint */
 
     assert(*p++ == '\"');
 
     for(;;) {
-        char ch = *p++;
+        unsigned char ch = *p++;
         switch (ch) {
             case '\"':
                 len = c->top - head;
@@ -140,8 +230,7 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                 c->json = p;
                 return LEPT_PARSE_OK;
             case '\0':
-                c->top = head;
-                return LEPT_PARSE_MISS_QUOTATION_MARK;
+                STRING_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK);
             case '\\':
                 ch = *p++;
                 switch(ch) {
@@ -153,21 +242,37 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                     case 'n':  PUTC(c, '\n'); break;
                     case 'r':  PUTC(c, '\r'); break;
                     case 't':  PUTC(c, '\t'); break;
+                    case 'u':
+                        /* convert to codepoint and save it in u */
+                        if((p = lept_parse_hex4(p, &u)) == NULL) {
+                            STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
+                        }
+                        /* surrogate handling */
+                        if((p = lept_surrogate_handling(p, &u)) == NULL) {
+                            if((int)u == -1) {
+                                STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE);
+                            } else {
+                                STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
+                            }
+                        }
+                        /* convert to utf-8 and save it */
+                        lept_encode_utf8(c, u);
+                        break;
                     default:
-                        c->top = head;
-                        return LEPT_PARSE_INVALID_ESCAPE;
+                        STRING_ERROR(LEPT_PARSE_INVALID_ESCAPE);
                 }
                 break;
             default:
                 if((ch >= 0x20 && ch <= 0x21) || (ch >= 0x23 && ch <= 0x5B) || (ch >=0x5D)) {
                     PUTC(c, ch);
                 } else {
-                    c->top = head;
-                    return LEPT_PARSE_INVALID_STRING_CHAR;
+                    STRING_ERROR(LEPT_PARSE_INVALID_STRING_CHAR);
                 }
         }
     }
 }
+
+/* parse */
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch(*c->json) {
