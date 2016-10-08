@@ -45,6 +45,31 @@ enum {
 	LEPT_PARSE_INVALID_UNICODE_HEX
 };
 
+/* helper - strings */
+
+static const char* lept_type_string[] = {
+	"LEPT_NULL",
+	"LEPT_FALSE",
+	"LEPT_TRUE",
+	"LEPT_NUMBER",
+	"LEPT_STRING",
+	"LEPT_ARRAY",
+	"LEPT_OBJECT"
+};
+
+static const char* lept_parse_xxx_string[] = {
+	"LEPT_PARSE_OK",
+	"LEPT_PARSE_EXPECT_VALUE",
+	"LEPT_PARSE_INVALID_VALUE",
+	"LEPT_PARSE_ROOT_NOT_SINGULAR",
+	"LEPT_PARSE_NUMBER_TOO_BIG",
+	"LEPT_PARSE_MISS_QUOTATION_MARK",
+	"LEPT_PARSE_INVALID_ESCAPE",
+	"LEPT_PARSE_INVALID_STRING_CHAR",
+	"LEPT_PARSE_INVALID_UNICODE_SURROGATE",
+	"LEPT_PARSE_INVALID_UNICODE_HEX"
+};
+
 void lept_init(lept_value* v);
 void lept_free(lept_value* v);
 

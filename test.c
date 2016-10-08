@@ -7,31 +7,6 @@ static int main_ret = 0;
 static int test_count = 0;
 static int test_pass = 0;
 
-/* helper - strings */
-
-static const char* lept_type_string[] = {
-	"LEPT_NULL",
-	"LEPT_FALSE",
-	"LEPT_TRUE",
-	"LEPT_NUMBER",
-	"LEPT_STRING",
-	"LEPT_ARRAY",
-	"LEPT_OBJECT"
-};
-
-static const char* lept_parse_xxx_string[] = {
-	"LEPT_PARSE_OK",
-	"LEPT_PARSE_EXPECT_VALUE",
-	"LEPT_PARSE_INVALID_VALUE",
-	"LEPT_PARSE_ROOT_NOT_SINGULAR",
-	"LEPT_PARSE_NUMBER_TOO_BIG",
-	"LEPT_PARSE_MISS_QUOTATION_MARK",
-	"LEPT_PARSE_INVALID_ESCAPE",
-	"LEPT_PARSE_INVALID_STRING_CHAR",
-	"LEPT_PARSE_INVALID_UNICODE_SURROGATE",
-	"LEPT_PARSE_INVALID_UNICODE_HEX"
-};
-
 /* helper - print by color */
 
 #define ORANGE "\033[1;33;40m"
@@ -199,6 +174,22 @@ static void test_parse_string() {
 static void test_parse_array() {
 	fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
+	lept_value v;
+	lept_init(&v);
+	// TEST_ARRAY("\"[]\"");
+	// TEST_ARRAY("\"[ ]\"");
+	// TEST_ARRAY("\"[1, 2, 3]\"");
+	// TEST_ARRAY("\"[]\"")
+
+	int ret_parse = lept_parse(&v, "[1, 2, 3, 4]");
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
+	EXPECT_EQ_DOUBLE(1.0f, lept_get_array_element(&v, 0)->n);
+	EXPECT_EQ_DOUBLE(2.0f, lept_get_array_element(&v, 1)->n);
+	EXPECT_EQ_DOUBLE(3.0f, lept_get_array_element(&v, 2)->n);
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->n);
+
+	lept_free(&v);
 }
 
 static void test_parse_ok() {

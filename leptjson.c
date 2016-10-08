@@ -53,6 +53,17 @@ static void* lept_context_pop(lept_context* c, size_t size) {
     return c->stack + (c->top -= size);
 }
 
+#define LEPT_CONTEXT_PUSH(c, type, v) \
+    do { \
+        *((type*)(lept_context_push((c), sizeof(type)))) = (v); \
+    } while(0)
+
+#define LEPT_CONTEXT_POP(c, type) \
+    *((type*)(lept_context_pop((c), sizeof(type))))
+
+#define LEPT_CONTEXT_POP_ALL(c) \
+    lept_context_pop((c), c->top) \
+
 /* parse ws */
 
 static void lept_parse_whitespace(lept_context* c) {
@@ -129,7 +140,7 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 
 /* parse string */
 
-#define PUTC(c, ch) do { *(char*)lept_context_push((c), sizeof(char)) = (ch); } while(0)
+#define PUTC(c, ch) do { LEPT_CONTEXT_PUSH(c, char, ch); } while(0)
 
 #define STRING_ERROR(ret) do { c->top = head; return ret; } while(0)
 
@@ -226,7 +237,7 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
         switch (ch) {
             case '\"':
                 len = c->top - head;
-                lept_set_string(v, (const char*)lept_context_pop(c, len), len);
+                lept_set_string(v, (const char*)LEPT_CONTEXT_POP_ALL(c), len);
                 c->json = p;
                 return LEPT_PARSE_OK;
             case '\0':
@@ -274,9 +285,7 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
 
 /* parse array */
 
-#define PUTV(c, v) do { *((lept_value*)lept_context_push(c, sizeof(v))) = (v); } while(0)
-
-#define POPV(c) *(lept_value*)(lept_context_pop(c, sizeof(lept_value)))
+#define PUTV(c, v) do { LEPT_CONTEXT_PUSH(c, lept_value, v); } while(0)
 
 static int lept_parse_value(lept_context* c, lept_value* v);
 
@@ -320,11 +329,10 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
     }
 
     /* copy to v->e */
-    v->e = (lept_value*)malloc(sizeof(char) * c->top);
-    while(v->size < (c->top / sizeof(lept_value)) ) {
-        v->e[v->size ++] = POPV(c);
-    }
     v->type = LEPT_ARRAY;
+    v->size = c->top / sizeof(lept_value);
+    v->e = (lept_value*)malloc(v->size * sizeof(lept_value));
+    memcpy(v->e, LEPT_CONTEXT_POP_ALL(c), v->size * sizeof(lept_value));
 
     c->json ++;
 
@@ -390,7 +398,15 @@ void lept_free(lept_value* v) {
     assert(v != NULL);
     if(v->type == LEPT_STRING && v->len > 0) {
         free(v->s);
+        v->s = NULL;
         v->len = 0;
+    } else if(v->type == LEPT_ARRAY && v->size > 0) {
+        for(size_t i = 0; i < v->size; i ++) {
+            lept_free(&v->e[i]);
+        }
+        free(v->e);
+        v->e = NULL;
+        v->size = 0;
     }
     /* to avoid double free */
     v->type = LEPT_NULL;
