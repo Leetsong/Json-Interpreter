@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "leptjson.h"
 
 static int main_ret = 0;
@@ -126,6 +127,7 @@ static int test_pass = 0;
 static void test_parse_number() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
+	TEST_NUMBER(55.123, "55.123");
     TEST_NUMBER(0.0, "0");
     TEST_NUMBER(0.0, "-0");
     TEST_NUMBER(0.0, "-0.0");
@@ -175,20 +177,48 @@ static void test_parse_array() {
 	fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
 	lept_value v;
-	lept_init(&v);
-	// TEST_ARRAY("\"[]\"");
-	// TEST_ARRAY("\"[ ]\"");
-	// TEST_ARRAY("\"[1, 2, 3]\"");
-	// TEST_ARRAY("\"[]\"")
+	int ret_parse;
 
-	int ret_parse = lept_parse(&v, "[1, 2, 3, 4]");
+	lept_init(&v);
+	ret_parse = lept_parse(&v, "[55.123, 122.1, 3.12, 4]");
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
+	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(&v, 0)->n);
+	EXPECT_EQ_DOUBLE(122.1, lept_get_array_element(&v, 1)->n);
+	EXPECT_EQ_DOUBLE(3.12, lept_get_array_element(&v, 2)->n);
+	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->n);
+	lept_free(&v);
+
+	lept_init(&v);
+	ret_parse = lept_parse(&v, "[       1,true, null,4    ]");
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
 	EXPECT_EQ_DOUBLE(1.0f, lept_get_array_element(&v, 0)->n);
-	EXPECT_EQ_DOUBLE(2.0f, lept_get_array_element(&v, 1)->n);
+	EXPECT_EQ_INT(1, lept_get_boolean(lept_get_array_element(&v, 1)));
+	EXPECT_EQ_TEST(LEPT_NULL, lept_get_type(lept_get_array_element(&v, 2)), lept_type_string);
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->n);
+	lept_free(&v);
+
+	lept_init(&v);
+	ret_parse = lept_parse(&v, "[\"13fas\", \"\\uD834\\uDD1E\", 3, 4]");
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
+	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
+	EXPECT_EQ_STRING("\xF0\x9D\x84\x9E", lept_get_string(lept_get_array_element(&v, 1)), 7);
 	EXPECT_EQ_DOUBLE(3.0f, lept_get_array_element(&v, 2)->n);
 	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->n);
+	lept_free(&v);
 
+	lept_init(&v);
+	ret_parse = lept_parse(&v, "[\"13fas\", [ 1, 55.123], 3, 4]");
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
+	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
+	lept_value* v2 = lept_get_array_element(&v, 1);
+	EXPECT_EQ_DOUBLE(1.0, lept_get_array_element(v2, 0)->n);
+	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(v2, 1)->n);
+	EXPECT_EQ_DOUBLE(3.0, lept_get_array_element(&v, 2)->n);
+	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->n);
 	lept_free(&v);
 }
 
@@ -225,6 +255,8 @@ static void test_parse_invalid_value() {
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "INF");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "NAN");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nan");
+	TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[,]");
+	TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "[2, 2, ]");
 }
 
 static void test_parse_root_not_singular() {
@@ -233,6 +265,7 @@ static void test_parse_root_not_singular() {
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "null x");
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "false null");
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "123e3 ASD");
+	TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "[123, 12] AS");
 }
 
 static void test_parse_number_too_big() {
@@ -240,13 +273,15 @@ static void test_parse_number_too_big() {
 
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "123E123123122");
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "-123E123123122");
+	TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "[-123E123123122, 12]");
 }
 
 static void test_parse_miss_quotation_mark() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "\"");
-    TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "\"ABC");
+	TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "\"ABC");
+    TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "[123, \"ABC]");
 }
 
 static void test_parse_invalid_escape() {
@@ -255,6 +290,7 @@ static void test_parse_invalid_escape() {
     TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "\"\\v\"");
     TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "\"\\x\"");
     TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "\"\\0\"");
+    TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "[123, \"\\0\"]");
 }
 
 static void test_parse_invalid_string_char() {
@@ -262,6 +298,7 @@ static void test_parse_invalid_string_char() {
 
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x01\"");
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x1F\"");
+	TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "[123, [2, 2], \"\x1F\"]");
 }
 
 static void test_parse_invalid_unicode_surrogate() {
@@ -272,6 +309,7 @@ static void test_parse_invalid_unicode_surrogate() {
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "\"\\uD800\\\\\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "\"\\uD800\\uDBFF\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "\"\\uD800\\uE000\"");
+    TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "[1212, \"\\uD800\\uE000\", [21]]");
 }
 
 static void test_parse_invalid_unicode_hex() {
@@ -289,6 +327,7 @@ static void test_parse_invalid_unicode_hex() {
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "\"\\u00G0\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "\"\\u000/\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "\"\\u000G\"");
+	TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "[\"\\u000G\"]");
 }
 
 static void test_access_string() {

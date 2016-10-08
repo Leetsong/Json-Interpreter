@@ -237,7 +237,7 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
         switch (ch) {
             case '\"':
                 len = c->top - head;
-                lept_set_string(v, (const char*)LEPT_CONTEXT_POP_ALL(c), len);
+                lept_set_string(v, (const char*)lept_context_pop(c, len), len);
                 c->json = p;
                 return LEPT_PARSE_OK;
             case '\0':
@@ -287,11 +287,14 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
 
 #define PUTV(c, v) do { LEPT_CONTEXT_PUSH(c, lept_value, v); } while(0)
 
+#define ARRAY_ERROR(ret) do { c->top = head; return ret; } while(0)
+
 static int lept_parse_value(lept_context* c, lept_value* v);
 
 static int lept_parse_array(lept_context* c, lept_value* v) {
-    const char* p;
     int ret;
+    const char* p;
+    size_t head = c->top, size = 0;
 
     assert(*(c->json)++ == '[');
 
@@ -310,11 +313,11 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
         lept_init(&v2);
         ret = lept_parse_value(c, &v2);
         if(ret != LEPT_PARSE_OK) {
-            return ret;
+            ARRAY_ERROR(ret);
         }
-        PUTV(c, v2);
+        PUTV(c, v2); size ++;
 
-        /* handle ',' and ws */
+        /* handle ws and ',' */
         lept_parse_whitespace(c);
         if(*(p = c->json) == ']') {
             break;
@@ -330,9 +333,9 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
 
     /* copy to v->e */
     v->type = LEPT_ARRAY;
-    v->size = c->top / sizeof(lept_value);
+    v->size = size;
     v->e = (lept_value*)malloc(v->size * sizeof(lept_value));
-    memcpy(v->e, LEPT_CONTEXT_POP_ALL(c), v->size * sizeof(lept_value));
+    memcpy(v->e, lept_context_pop(c, v->size * sizeof(lept_value)), v->size * sizeof(lept_value));
 
     c->json ++;
 
@@ -343,7 +346,7 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch(*c->json) {
-        case '0': case '1': case '2': case '3': case '4':
+        case '0': case '1': case '2': case '3': case '4': case '5':
         case '6': case '7': case '8': case '9': case '-':
             return lept_parse_number(c, v);
         case 'f':  return lept_parse_literal(c, v, "false", LEPT_FALSE);
@@ -387,7 +390,7 @@ lept_type lept_get_type(const lept_value* v) {
     return v->type;
 }
 
-/* free */
+/* init && free */
 
 void lept_init(lept_value* v) {
     memset(v, 0, sizeof(lept_value));
