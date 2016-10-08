@@ -7,7 +7,32 @@ static int main_ret = 0;
 static int test_count = 0;
 static int test_pass = 0;
 
-/* print by color */
+/* helper - strings */
+
+static const char* lept_type_string[] = {
+	"LEPT_NULL",
+	"LEPT_FALSE",
+	"LEPT_TRUE",
+	"LEPT_NUMBER",
+	"LEPT_STRING",
+	"LEPT_ARRAY",
+	"LEPT_OBJECT"
+};
+
+static const char* lept_parse_xxx_string[] = {
+	"LEPT_PARSE_OK",
+	"LEPT_PARSE_EXPECT_VALUE",
+	"LEPT_PARSE_INVALID_VALUE",
+	"LEPT_PARSE_ROOT_NOT_SINGULAR",
+	"LEPT_PARSE_NUMBER_TOO_BIG",
+	"LEPT_PARSE_MISS_QUOTATION_MARK",
+	"LEPT_PARSE_INVALID_ESCAPE",
+	"LEPT_PARSE_INVALID_STRING_CHAR",
+	"LEPT_PARSE_INVALID_UNICODE_SURROGATE",
+	"LEPT_PARSE_INVALID_UNICODE_HEX"
+};
+
+/* helper - print by color */
 
 #define ORANGE "\033[1;33;40m"
 #define GREEN "\033[1;32;40m"
@@ -45,6 +70,11 @@ static int test_pass = 0;
 #define EXPECT_EQ_STRING(expect, actual, len) EXPECT_EQ_BASE(strncmp((expect), (actual), (len)) == 0, expect, actual, "%s")
 #define EXPECT_TRUE(actual) EXPECT_EQ_BASE((actual) == 1, 1, actual, "%d");
 #define EXPECT_FALSE(actual) EXPECT_EQ_BASE((actual) == 0, 0, actual, "%d");
+#ifdef _MSC_VER
+#define EXPECT_EQ_SIZE_T(expect, actual) EXPECT_EQ_BASE((expect) == (actual), (size_t)expect, (size_t)actual, "%Iu");
+#else
+#define EXPECT_EQ_SIZE_T(expect, actual) EXPECT_EQ_BASE((expect) == (actual), (size_t)expect, (size_t)actual, "%zu");
+#endif
 
 /* test macro */
 
@@ -100,6 +130,22 @@ static int test_pass = 0;
         lept_free(&v); \
     } while(0)
 
+#define TEST_ARRAY(expect, json) \
+    do { \
+        lept_value v; \
+        lept_init(&v); \
+        int ret_parse, ret_type; \
+        const char* ret_string; \
+        ret_parse = lept_parse(&v, json); \
+        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string); \
+        ret_type = lept_get_type(&v); \
+        EXPECT_EQ_TEST(LEPT_STRING, ret_type, lept_type_string); \
+        ret_string = lept_get_string(&v); \
+        EXPECT_EQ_STRING(expect, ret_string, lept_get_string_length(&v)); \
+        lept_free(&v); \
+    } while(0)
+
+
 /* test case */
 
 static void test_parse_number() {
@@ -150,6 +196,11 @@ static void test_parse_string() {
     TEST_STRING("\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\"");  /* G clef sign U+1D11E */
 }
 
+static void test_parse_array() {
+	fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+}
+
 static void test_parse_ok() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
@@ -159,6 +210,7 @@ static void test_parse_ok() {
 
     test_parse_number();
     test_parse_string();
+	test_parse_array();
 }
 
 static void test_parse_expect_value() {
@@ -284,6 +336,17 @@ static void test_access_number() {
     lept_free(&v);
 }
 
+static void test_access_array() {
+	fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+	lept_value v;
+
+	lept_init(&v);
+	EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "[ ]"));
+	EXPECT_EQ_SIZE_T(0, lept_get_array_size(&v));
+	lept_free(&v);
+}
+
 static void test_parse() {
     test_parse_ok();
     test_parse_expect_value();
@@ -299,6 +362,7 @@ static void test_parse() {
     test_access_boolean();
     test_access_string();
     test_access_number();
+	test_access_array();
 }
 
 /* main */

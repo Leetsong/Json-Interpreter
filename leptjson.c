@@ -272,6 +272,65 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
     }
 }
 
+/* parse array */
+
+#define PUTV(c, v) do { *((lept_value*)lept_context_push(c, sizeof(v))) = (v); } while(0)
+
+#define POPV(c) *(lept_value*)(lept_context_pop(c, sizeof(lept_value)))
+
+static int lept_parse_value(lept_context* c, lept_value* v);
+
+static int lept_parse_array(lept_context* c, lept_value* v) {
+    const char* p;
+    int ret;
+
+    assert(*(c->json)++ == '[');
+
+    lept_parse_whitespace(c);
+    if(*(c->json) == ']') {
+        v->type = LEPT_ARRAY;
+        v->e = NULL;
+        v->size = 0;
+        c->json ++;
+        return LEPT_PARSE_OK;
+    }
+
+    while(1) {
+
+        lept_value v2;
+        lept_init(&v2);
+        ret = lept_parse_value(c, &v2);
+        if(ret != LEPT_PARSE_OK) {
+            return ret;
+        }
+        PUTV(c, v2);
+
+        /* handle ',' and ws */
+        lept_parse_whitespace(c);
+        if(*(p = c->json) == ']') {
+            break;
+        } else if(*p != ',') {
+            return LEPT_PARSE_INVALID_VALUE;
+        } else {
+            /* continue handling this array */
+            c->json ++;
+        }
+        lept_parse_whitespace(c);
+
+    }
+
+    /* copy to v->e */
+    v->e = (lept_value*)malloc(sizeof(char) * c->top);
+    while(v->size < (c->top / sizeof(lept_value)) ) {
+        v->e[v->size ++] = POPV(c);
+    }
+    v->type = LEPT_ARRAY;
+
+    c->json ++;
+
+    return ret;
+}
+
 /* parse */
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
@@ -283,6 +342,7 @@ static int lept_parse_value(lept_context* c, lept_value* v) {
         case 't':  return lept_parse_literal(c, v, "true", LEPT_TRUE);
         case 'n':  return lept_parse_literal(c, v, "null", LEPT_NULL);
         case '\"': return lept_parse_string(c, v);
+        case '[':  return lept_parse_array(c, v);
         case '\0': return LEPT_PARSE_EXPECT_VALUE;
         default:   return LEPT_PARSE_INVALID_VALUE;
     }
@@ -320,6 +380,11 @@ lept_type lept_get_type(const lept_value* v) {
 }
 
 /* free */
+
+void lept_init(lept_value* v) {
+    memset(v, 0, sizeof(lept_value));
+    v->type = LEPT_NULL;
+}
 
 void lept_free(lept_value* v) {
     assert(v != NULL);
@@ -376,4 +441,17 @@ void lept_set_number(lept_value* v, double d) {
     lept_free(v);
     v->n = d;
     v->type = LEPT_NUMBER;
+}
+
+/* array */
+
+size_t lept_get_array_size(const lept_value* v) {
+    assert(v != NULL && v->type == LEPT_ARRAY);
+    return v->size;
+}
+
+lept_value* lept_get_array_element(const lept_value* v, size_t index) {
+    assert(v != NULL && v->type == LEPT_ARRAY);
+    assert(index < v->size);
+    return &(v->e[index]);
 }
