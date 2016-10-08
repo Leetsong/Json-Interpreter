@@ -287,7 +287,15 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
 
 #define PUTV(c, v) do { LEPT_CONTEXT_PUSH(c, lept_value, v); } while(0)
 
-#define ARRAY_ERROR(ret) do { c->top = head; return ret; } while(0)
+#define ARRAY_ERROR(ret) \
+    do { \
+        lept_value* p = (lept_value*)(void*)(c->stack + head); \
+        for(size_t i = 0; i < size; i ++) { \
+            lept_free(&p[i]); \
+        } \
+        c->top = head; \
+        return ret; \
+    } while(0)
 
 static int lept_parse_value(lept_context* c, lept_value* v);
 
@@ -322,7 +330,7 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
         if(*(p = c->json) == ']') {
             break;
         } else if(*p != ',') {
-            return LEPT_PARSE_INVALID_VALUE;
+            ARRAY_ERROR(LEPT_PARSE_INVALID_VALUE);
         } else {
             /* continue handling this array */
             c->json ++;
