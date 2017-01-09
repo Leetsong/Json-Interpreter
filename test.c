@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 #include "leptjson.h"
 
 static int main_ret = 0;
@@ -25,6 +26,93 @@ static int test_pass = 0;
 #define fprintf_warn(output, ...) fprintf_color(ORANGE, output, __VA_ARGS__)
 #define fprintf_info(output, ...) fprintf_color(GREEN, output, __VA_ARGS__)
 #define fprintf_error(output, ...) fprintf_color(RED, output, __VA_ARGS__)
+
+// static void _print_json_array(lept_value* v, int depth, FILE* fp);
+// static void _print_json_object(lept_value* v, int depth, FILE* fp);
+//
+// static void _print_json_array(lept_value* v, int depth, FILE* fp) {
+//     for(int i = 0; i < depth; i ++) {
+//         fprintf(fp, "\t");
+//     }
+//     fprintf(fp, "[\n");
+//
+//     for(size_t i = 0; i < lept_get_array_size(v); i ++) {
+//         for(int i = 0; i < depth; i ++) {
+//             fprintf(fp, "\t");
+//         }
+//         fprintf(fp, "  ");
+//         switch(lept_get_type(lept_get_array_element(v, i))) {
+//         case LEPT_NULL: fprintf(fp, "null,\n"); break;
+//         case LEPT_TRUE: fprintf(fp, "true,\n"); break;
+//         case LEPT_FALSE: fprintf(fp, "false,\n"); break;
+//         case LEPT_NUMBER: fprintf(fp, "%lf,\n", lept_get_number(lept_get_array_element(v, i))); break;
+//         case LEPT_STRING: fprintf(fp, "\"%s\",\n", lept_get_string(lept_get_array_element(v, i))); break;
+//         case LEPT_ARRAY:
+//             fprintf(fp, "\n");
+//             _print_json_array(lept_get_array_element(v, i), depth + 1, fp);
+//             break;
+//         case LEPT_OBJECT:
+//             fprintf(fp, "\n");
+//             _print_json_object(lept_get_array_element(v, i), depth + 1, fp);
+//             break;
+//         default: assert(0);
+//         }
+//     }
+//
+//     for(int i = 0; i < depth; i ++) {
+//         fprintf(fp, "\t");
+//     }
+//     fprintf(fp, "],\n");
+//
+// }
+//
+// static void _print_json_object(lept_value* v, int depth, FILE* fp) {
+//     for(int i = 0; i < depth; i ++) {
+//         fprintf(fp, "\t");
+//     }
+//     fprintf(fp, "{\n");
+//
+//     for(size_t i = 0; i < lept_get_object_size(v); i ++) {
+//         for(int i = 0; i < depth; i ++) {
+//             fprintf(fp, "\t");
+//         }
+//         fprintf(fp, "  \"%s\": ", lept_get_object_key(v, i));
+//         switch(lept_get_type(lept_get_object_value(v, i))) {
+//         case LEPT_NULL: fprintf(fp, "null,\n"); break;
+//         case LEPT_TRUE: fprintf(fp, "true,\n"); break;
+//         case LEPT_FALSE: fprintf(fp, "false,\n"); break;
+//         case LEPT_NUMBER: fprintf(fp, "%lf,\n", lept_get_number(lept_get_object_value(v, i))); break;
+//         case LEPT_STRING: fprintf(fp, "\"%s\",\n", lept_get_string(lept_get_object_value(v, i))); break;
+//         case LEPT_ARRAY:
+//             fprintf(fp, "\n");
+//             _print_json_array(lept_get_object_value(v, i), depth + 1, fp);
+//             break;
+//         case LEPT_OBJECT:
+//             fprintf(fp, "\n");
+//             _print_json_object(lept_get_object_value(v, i), depth + 1, fp);
+//             break;
+//         default: assert(0);
+//         }
+//     }
+//
+//
+//     for(int i = 0; i < depth; i ++) {
+//         fprintf(fp, "\t");
+//     }
+//     fprintf(fp, "},\n");
+//
+// }
+//
+// static void print_json_object(const char* r, lept_value* v) {
+//     FILE* fp = fopen("test.json", "a");
+//     if(fp == NULL) {
+//         fprintf_error(stderr, "!!!!!!!!!!!! >> %s: FAILED TO OPEN THE FILE", __func__);
+//     }
+//     fprintf(fp, ">>>>>>> %s\n", r);
+//     _print_json_object(v, 0, fp);
+//     fprintf(fp, "\n");
+//     fclose(fp);
+// }
 
 /* test base */
 
@@ -122,7 +210,7 @@ static int test_pass = 0;
     } while(0)
 
 
-/* test case */
+/* test cases */
 
 static void test_parse_number() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
@@ -222,6 +310,105 @@ static void test_parse_array() {
 	lept_free(&v);
 }
 
+static void test_parse_object() {
+    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+
+
+	lept_value v;
+	int ret_parse;
+
+
+	lept_init(&v);
+
+	ret_parse = lept_parse(&v, "{\"key1\":1}");
+    // print_json_object("{\"key1\":1}", &v);
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+	EXPECT_EQ_SIZE_T(1, lept_get_object_size(&v));
+
+    EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
+	EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
+    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
+	EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+
+    lept_free(&v);
+
+
+    lept_init(&v);
+
+    ret_parse = lept_parse(&v, "{\"key1\":1, \"key22\":  true}");
+    // print_json_object("{\"key1\":1, \"key22\":  true}", &v);
+    EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+    EXPECT_EQ_SIZE_T(2, lept_get_object_size(&v));
+
+    EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
+    EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
+    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+
+    EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
+    EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
+    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
+
+    lept_free(&v);
+
+
+    lept_init(&v);
+
+    ret_parse = lept_parse(&v, "{\"key1\":1, \"key22\":  true, \"key123\": [1, 2,3]}");
+    // print_json_object("{\"key1\":1, \"key22\":  true, \"key123\": [1, 2,3]}", &v);
+    EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+    EXPECT_EQ_SIZE_T(3, lept_get_object_size(&v));
+
+    EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
+    EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
+    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+
+    EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
+    EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
+    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
+
+    EXPECT_EQ_SIZE_T(6, lept_get_object_key_length(&v, 2));
+    EXPECT_EQ_STRING("key123", lept_get_object_key(&v, 2), 6);
+    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_object_value(&v, 2)->type);
+
+    lept_free(&v);
+
+
+    lept_init(&v);
+
+    ret_parse = lept_parse(&v, "{\"key1\":1, \"key22\":  true, \"key123\": [1, 2,3],         \"key1234\"   : { \"kkk\": \"123\"}}");
+    // print_json_object("{\"key1\":1, \"key22\":  true, \"key123\": [1, 2,3],         \"key1234\"   : { \"kkk\": \"123\"}}", &v);
+    EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
+    EXPECT_EQ_SIZE_T(4, lept_get_object_size(&v));
+
+    EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
+    EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
+    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+
+    EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
+    EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
+    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
+
+    EXPECT_EQ_SIZE_T(6, lept_get_object_key_length(&v, 2));
+    EXPECT_EQ_STRING("key123", lept_get_object_key(&v, 2), 6);
+    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_object_value(&v, 2)->type);
+
+    EXPECT_EQ_SIZE_T(7, lept_get_object_key_length(&v, 3));
+    EXPECT_EQ_STRING("key1234", lept_get_object_key(&v, 3), 7);
+    EXPECT_EQ_INT(LEPT_OBJECT, lept_get_object_value(&v, 3)->type);
+    EXPECT_EQ_SIZE_T(1, lept_get_object_size(lept_get_object_value(&v, 3)));
+    EXPECT_EQ_SIZE_T(3, lept_get_object_key_length(lept_get_object_value(&v, 3), 0));
+    EXPECT_EQ_STRING("kkk", lept_get_object_key(lept_get_object_value(&v, 3), 0), 3);
+
+    lept_free(&v);
+
+}
+
 static void test_parse_ok() {
     fprintf_warn(stdout, "=> %s starts...\n", __func__);
 
@@ -232,6 +419,7 @@ static void test_parse_ok() {
     test_parse_number();
     test_parse_string();
 	test_parse_array();
+    test_parse_object();
 }
 
 static void test_parse_expect_value() {
