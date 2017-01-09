@@ -6,6 +6,9 @@
 struct lept_value;
 typedef struct lept_value lept_value;
 
+struct lept_member;
+typedef struct lept_member lept_member;
+
 typedef enum {
 	LEPT_NULL, LEPT_FALSE, LEPT_TRUE,
 	LEPT_NUMBER, LEPT_STRING, LEPT_ARRAY,
@@ -16,16 +19,23 @@ struct lept_value {
 
 	union {
 		struct {
+			lept_member* m;
+			size_t size;
+		} object; /* object */
+
+		struct {
 			lept_value* e;
 			size_t size;
-		}; /* array */
+		} array; /* array */
 
 		struct {
 			size_t len;
 			char* s;
-		}; /* string */
+		} string; /* string */
 
-		double n; /* number */
+		struct {
+			double v;
+		} number; /* number */
 	};
 
     lept_type type;

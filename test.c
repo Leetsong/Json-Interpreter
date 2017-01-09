@@ -183,20 +183,20 @@ static void test_parse_array() {
 	ret_parse = lept_parse(&v, "[55.123, 122.1, 3.12, 4]");
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
-	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(&v, 0)->n);
-	EXPECT_EQ_DOUBLE(122.1, lept_get_array_element(&v, 1)->n);
-	EXPECT_EQ_DOUBLE(3.12, lept_get_array_element(&v, 2)->n);
-	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->n);
+	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(&v, 0)->number.v);
+	EXPECT_EQ_DOUBLE(122.1, lept_get_array_element(&v, 1)->number.v);
+	EXPECT_EQ_DOUBLE(3.12, lept_get_array_element(&v, 2)->number.v);
+	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->number.v);
 	lept_free(&v);
 
 	lept_init(&v);
 	ret_parse = lept_parse(&v, "[       1,true, null,4    ]");
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
-	EXPECT_EQ_DOUBLE(1.0f, lept_get_array_element(&v, 0)->n);
+	EXPECT_EQ_DOUBLE(1.0f, lept_get_array_element(&v, 0)->number.v);
 	EXPECT_EQ_INT(1, lept_get_boolean(lept_get_array_element(&v, 1)));
 	EXPECT_EQ_TEST(LEPT_NULL, lept_get_type(lept_get_array_element(&v, 2)), lept_type_string);
-	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->n);
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->number.v);
 	lept_free(&v);
 
 	lept_init(&v);
@@ -205,8 +205,8 @@ static void test_parse_array() {
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
 	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
 	EXPECT_EQ_STRING("\xF0\x9D\x84\x9E", lept_get_string(lept_get_array_element(&v, 1)), 7);
-	EXPECT_EQ_DOUBLE(3.0f, lept_get_array_element(&v, 2)->n);
-	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->n);
+	EXPECT_EQ_DOUBLE(3.0f, lept_get_array_element(&v, 2)->number.v);
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->number.v);
 	lept_free(&v);
 
 	lept_init(&v);
@@ -215,10 +215,10 @@ static void test_parse_array() {
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
 	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
 	lept_value* v2 = lept_get_array_element(&v, 1);
-	EXPECT_EQ_DOUBLE(1.0, lept_get_array_element(v2, 0)->n);
-	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(v2, 1)->n);
-	EXPECT_EQ_DOUBLE(3.0, lept_get_array_element(&v, 2)->n);
-	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->n);
+	EXPECT_EQ_DOUBLE(1.0, lept_get_array_element(v2, 0)->number.v);
+	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(v2, 1)->number.v);
+	EXPECT_EQ_DOUBLE(3.0, lept_get_array_element(&v, 2)->number.v);
+	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->number.v);
 	lept_free(&v);
 }
 
