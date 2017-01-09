@@ -389,6 +389,9 @@ int lept_parse_object(lept_context* c, lept_value* v) {
 
         // key
         lept_init(&v);
+        if(*(c->json) != '\"') {
+            OBJECT_ERROR(LEPT_PARSE_MISS_KEY);
+        }
         ret = lept_parse_string(c, &v);
         if(ret != LEPT_PARSE_OK) {
             OBJECT_ERROR(ret);
@@ -396,7 +399,7 @@ int lept_parse_object(lept_context* c, lept_value* v) {
         m.k.s = v.string.s; m.k.len = v.string.len;
         lept_parse_whitespace(c);
         if(*(c->json ++) != ':') {
-            OBJECT_ERROR(LEPT_PARSE_MISSING_COLON);
+            OBJECT_ERROR(LEPT_PARSE_MISS_COLON);
         }
         // value
         lept_init(&m.v);
@@ -413,7 +416,7 @@ int lept_parse_object(lept_context* c, lept_value* v) {
         if(*(p = c->json) == '}') {
             break;
         } else if(*p != ',') {
-            OBJECT_ERROR(LEPT_PARSE_MISSING_COMMA_OR_CURLY_BRAKET);
+            OBJECT_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET);
         } else {
             /* continue handling this array */
             c->json ++;
