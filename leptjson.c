@@ -358,9 +358,10 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
 
 #define OBJECT_ERROR(ret) \
     do { \
-        lept_value* p = (lept_value*)(void*)(c->stack + head); \
+        lept_member* p = (lept_member*)(void*)(c->stack + head); \
         for(size_t i = 0; i < size; i ++) { \
-            lept_free(&p[i]); \
+            free(p[i].k.s); \
+            lept_free(&p[i].v); \
         } \
         c->top = head; \
         return ret; \
