@@ -710,6 +710,12 @@ static void test_stringify() {
     TEST_ROUNDTRIP("\"1234 null\"", 11);
     // TEST_ROUNDTRIP("\"1234 \\u1234\"", 12);
     // TEST_ROUNDTRIP("\"1234 \\u0821 false\"", 12);
+    TEST_ROUNDTRIP("[1,2,3]", 7);
+    TEST_ROUNDTRIP("[1,null,false]", 14);
+    TEST_ROUNDTRIP("[1,\"1234 null\"]", 15);
+    TEST_ROUNDTRIP("[1,\"1234 null\",[1,2]]", 21);
+    TEST_ROUNDTRIP("{\"1\":1,\"222\":2,\"3\":[1,2,3],\"4\":4}",33);
+
 
     // TEST_STRING("12SDFE3", "\"12SDFE3\"");
     // TEST_STRING("12ASDF\"AS3", "\"12ASDF\\\"AS3\"");
