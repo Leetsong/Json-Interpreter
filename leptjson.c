@@ -609,6 +609,7 @@ lept_value* lept_get_object_value(const lept_value* v, size_t index) {
 
 static int lept_stringify_value(lept_context* c, lept_value* v) {
     int ret = LEPT_STRINGIFY_OK;
+    const char* s; size_t len;
 
     switch(v->type) {
     case LEPT_NULL: PUTS(c, "null", 4); break;
@@ -617,7 +618,23 @@ static int lept_stringify_value(lept_context* c, lept_value* v) {
     case LEPT_NUMBER:
         c->top -= (32 - sprintf(lept_context_push(c, 32), "%.17g", lept_get_number(v)));
         break;
-    case LEPT_STRING: break;
+    case LEPT_STRING: {
+        s = lept_get_string(v);
+        len = lept_get_string_length(v);
+
+        PUTC(c, '\"');
+        for(size_t i = 0; i < len; i ++) {
+            if((unsigned int)s[i] < 0x20) {
+                PUTS(c, "\\u00", 4);
+                sprintf(lept_context_push(c, 2), "%02x", s[i]);
+            } else {
+                PUTC(c, s[i]);
+            }
+        }
+        PUTC(c, '\"');
+
+        break;
+    }
     case LEPT_ARRAY: break;
     case LEPT_OBJECT: break;
     default: assert(0);

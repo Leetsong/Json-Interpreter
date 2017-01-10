@@ -702,6 +702,26 @@ static void test_stringify() {
     TEST_ROUNDTRIP("null", 4);
     TEST_ROUNDTRIP("true", 4);
     TEST_ROUNDTRIP("false", 5);
+    TEST_ROUNDTRIP("1", 1);
+    TEST_ROUNDTRIP("1.21312", 7);
+    // TEST_ROUNDTRIP("1e-20", 5);
+    TEST_ROUNDTRIP("\"1234\"", 6);
+    TEST_ROUNDTRIP("\"1234 true\"", 11);
+    TEST_ROUNDTRIP("\"1234 null\"", 11);
+    // TEST_ROUNDTRIP("\"1234 \\u1234\"", 12);
+    // TEST_ROUNDTRIP("\"1234 \\u0821 false\"", 12);
+
+    // TEST_STRING("12SDFE3", "\"12SDFE3\"");
+    // TEST_STRING("12ASDF\"AS3", "\"12ASDF\\\"AS3\"");
+    // TEST_STRING("Hello\nWorld", "\"Hello\\nWorld\"");
+    // TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
+    // TEST_STRING("\x00\x01\x12", "\"\\u0000\\u0123\\u1234\"");
+    // TEST_STRING("\x24", "\"\\u0024\"");         /* Dollar sign U+0024 */
+    // TEST_STRING("\xC2\xA2", "\"\\u00A2\"");     /* Cents sign U+00A2 */
+    // TEST_STRING("\xE2\x82\xAC", "\"\\u20AC\""); /* Euro sign U+20AC */
+    // TEST_STRING("\xF0\x9D\x84\x9E", "\"\\uD834\\uDD1E\"");  /* G clef sign U+1D11E */
+    // TEST_STRING("\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\"");  /* G clef sign U+1D11E */
+
 }
 
 /* main */
