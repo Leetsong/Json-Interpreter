@@ -213,7 +213,7 @@ static int test_pass = 0;
 /* test cases */
 
 static void test_parse_number() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
 	TEST_NUMBER(55.123, "55.123");
     TEST_NUMBER(0.0, "0");
@@ -247,7 +247,7 @@ static void test_parse_number() {
 }
 
 static void test_parse_string() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_STRING("12SDFE3", "\"12SDFE3\"");
     TEST_STRING("12ASDF\"AS3", "\"12ASDF\\\"AS3\"");
@@ -262,7 +262,7 @@ static void test_parse_string() {
 }
 
 static void test_parse_array() {
-	fprintf_warn(stdout, "=> %s starts...\n", __func__);
+	fprintf_warn(stdout, " => %s starts...\n", __func__);
 
 	lept_value v;
 	int ret_parse;
@@ -311,7 +311,7 @@ static void test_parse_array() {
 }
 
 static void test_parse_object() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
 
 	lept_value v;
@@ -458,7 +458,7 @@ static void test_parse_object() {
 }
 
 static void test_parse_ok() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_LITERAL(LEPT_NULL, "null");
     TEST_LITERAL(LEPT_FALSE, "false");
@@ -471,14 +471,14 @@ static void test_parse_ok() {
 }
 
 static void test_parse_expect_value() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_EXPECT_VALUE, "");
     TEST_ERROR(LEPT_PARSE_EXPECT_VALUE, "  ");
 }
 
 static void test_parse_invalid_value() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nul");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "?");
@@ -500,7 +500,7 @@ static void test_parse_invalid_value() {
 }
 
 static void test_parse_root_not_singular() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "null x");
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "false null");
@@ -509,7 +509,7 @@ static void test_parse_root_not_singular() {
 }
 
 static void test_parse_number_too_big() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "123E123123122");
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "-123E123123122");
@@ -517,7 +517,7 @@ static void test_parse_number_too_big() {
 }
 
 static void test_parse_miss_quotation_mark() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "\"");
 	TEST_ERROR(LEPT_PARSE_MISS_QUOTATION_MARK, "\"ABC");
@@ -525,7 +525,7 @@ static void test_parse_miss_quotation_mark() {
 }
 
 static void test_parse_invalid_escape() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "\"\\v\"");
     TEST_ERROR(LEPT_PARSE_INVALID_ESCAPE, "\"\\x\"");
@@ -534,7 +534,7 @@ static void test_parse_invalid_escape() {
 }
 
 static void test_parse_invalid_string_char() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x01\"");
     TEST_ERROR(LEPT_PARSE_INVALID_STRING_CHAR, "\"\x1F\"");
@@ -542,7 +542,7 @@ static void test_parse_invalid_string_char() {
 }
 
 static void test_parse_invalid_unicode_surrogate() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "\"\\uD800\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE, "\"\\uDBFF\"");
@@ -553,7 +553,7 @@ static void test_parse_invalid_unicode_surrogate() {
 }
 
 static void test_parse_invalid_unicode_hex() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "\"\\u\"");
     TEST_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX, "\"\\u0\"");
@@ -571,7 +571,7 @@ static void test_parse_invalid_unicode_hex() {
 }
 
 static void test_parse_miss_key() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{:1,");
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{1:1,");
@@ -584,14 +584,14 @@ static void test_parse_miss_key() {
 }
 
 static void test_parse_miss_colon() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_MISS_COLON, "{\"a\"}");
     TEST_ERROR(LEPT_PARSE_MISS_COLON, "{\"a\",\"b\"}");
 }
 
 static void test_parse_miss_comma_or_curly_bracket() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":1");
     TEST_ERROR(LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET, "{\"a\":1]");
@@ -600,7 +600,7 @@ static void test_parse_miss_comma_or_curly_bracket() {
 }
 
 static void test_access_string() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     lept_value v;
     lept_init(&v);
@@ -614,7 +614,7 @@ static void test_access_string() {
 }
 
 static void test_access_boolean() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     lept_value v;
     lept_init(&v);
@@ -625,7 +625,7 @@ static void test_access_boolean() {
 }
 
 static void test_access_number() {
-    fprintf_warn(stdout, "=> %s starts...\n", __func__);
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
 
     lept_value v;
     lept_init(&v);
@@ -636,7 +636,7 @@ static void test_access_number() {
 }
 
 static void test_access_array() {
-	fprintf_warn(stdout, "=> %s starts...\n", __func__);
+	fprintf_warn(stdout, " => %s starts...\n", __func__);
 
 	lept_value v;
 
@@ -647,7 +647,7 @@ static void test_access_array() {
 }
 
 static void test_access_object() {
-	fprintf_warn(stdout, "=> %s starts...\n", __func__);
+	fprintf_warn(stdout, " => %s starts...\n", __func__);
 
 	lept_value v;
 
@@ -658,6 +658,8 @@ static void test_access_object() {
 }
 
 static void test_parse() {
+    fprintf_color(GREEN, stdout,  "== %s starts...\n", __func__);
+
     test_parse_ok();
     test_parse_expect_value();
     test_parse_invalid_value();
@@ -679,10 +681,34 @@ static void test_parse() {
     test_access_object();
 }
 
+#define TEST_ROUNDTRIP(json, len) \
+    do { \
+        char* r_json; \
+        size_t r_len; \
+        int ret; \
+        lept_value v; \
+        lept_init(&v); \
+        ret = lept_parse(&v, json); \
+        EXPECT_EQ_INT(LEPT_PARSE_OK, ret); \
+        ret = lept_stringify(&v, &r_json, &r_len); \
+        EXPECT_EQ_INT(LEPT_STRINGIFY_OK, ret); \
+        EXPECT_EQ_SIZE_T(len, r_len); \
+        EXPECT_EQ_STRING(json, r_json, r_len); \
+    } while(0)
+
+static void test_stringify() {
+    fprintf_color(GREEN, stdout,  "== %s starts...\n", __func__);
+
+    TEST_ROUNDTRIP("null", 4);
+    TEST_ROUNDTRIP("true", 4);
+    TEST_ROUNDTRIP("false", 5);
+}
+
 /* main */
 
 int main() {
     test_parse();
+    test_stringify();
     fprintf_info(stdout, "%d/%d (%3.2f%%) passed\n", test_pass, test_count, test_pass * 100.0 / test_count);
 
     return main_ret;

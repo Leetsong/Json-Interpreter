@@ -66,7 +66,8 @@ enum {
 	LEPT_PARSE_INVALID_UNICODE_HEX,
 	LEPT_PARSE_MISS_KEY,
 	LEPT_PARSE_MISS_COLON,
-	LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET
+	LEPT_PARSE_MISS_COMMA_OR_CURLY_BRACKET,
+	LEPT_STRINGIFY_OK
 };
 
 /* helper - strings */
@@ -122,5 +123,7 @@ size_t lept_get_object_key_length(const lept_value* v, size_t index);
 lept_value* lept_get_object_value(const lept_value* v, size_t index);
 
 #define lept_set_null(v) lept_free(v)
+
+int lept_stringify(lept_value* v, char** json, size_t* len);
 
 #endif /* LEPTJSON_H__ */
