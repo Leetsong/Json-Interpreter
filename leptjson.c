@@ -232,6 +232,12 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
 
     assert(*p++ == '\"');
 
+    if(*p == '\"') {
+        lept_set_string(v, "", 0);
+        c->json = ++ p;
+        return LEPT_PARSE_OK;
+    }
+
     for(;;) {
         unsigned char ch = *p++;
         switch (ch) {
@@ -611,11 +617,23 @@ lept_value* lept_get_object_value(const lept_value* v, size_t index) {
     do { \
         PUTC(c, '\"'); \
         for(size_t i = 0; i < len; i ++) { \
-            if((unsigned int)s[i] < 0x20) { \
-                PUTRAWS(c, "\\u00", 4); \
-                sprintf(lept_context_push(c, 2), "%02x", s[i]); \
-            } else { \
-                PUTC(c, s[i]); \
+            switch(s[i]) { \
+                case '\"': PUTRAWS(c, "\\\"", 2); break; \
+                case '\'': PUTRAWS(c, "\\\'", 2); break; \
+                case '\n': PUTRAWS(c, "\\n", 2); break; \
+                case '\t': PUTRAWS(c, "\\t", 2); break; \
+                case '\b': PUTRAWS(c, "\\b", 2); break; \
+                case '\r': PUTRAWS(c, "\\r", 2); break; \
+                case '\f': PUTRAWS(c, "\\f", 2); break; \
+                case '\\': PUTRAWS(c, "\\\\", 2); break; \
+                default: { \
+                    if((unsigned int)s[i] < 0x20) { \
+                        PUTRAWS(c, "\\u00", 4); \
+                        sprintf(lept_context_push(c, 2), "%02x", s[i]); \
+                    } else { \
+                        PUTC(c, s[i]); \
+                    } \
+                } \
             } \
         } \
         PUTC(c, '\"'); \
@@ -646,7 +664,7 @@ static int lept_stringify_value(lept_context* c, lept_value* v) {
         c->top -= (32 - sprintf(lept_context_push(c, 32), "%.17g", lept_get_number(v)));
         break;
     }
-    
+
     case LEPT_STRING: {
         const char* s = lept_get_string(v);
         size_t len = lept_get_string_length(v);
@@ -657,7 +675,7 @@ static int lept_stringify_value(lept_context* c, lept_value* v) {
     case LEPT_ARRAY: {
         size_t size = lept_get_array_size(v);
         PUTC(c, '[');
-        for(size_t i = 0; i < size - 1; i ++) {
+        for(size_t i = 0; (size > 0) && (i < size - 1); i ++) {
             lept_stringify_value(c, lept_get_array_element(v, i));
             PUTC(c, ',');
         }
@@ -671,7 +689,7 @@ static int lept_stringify_value(lept_context* c, lept_value* v) {
     case LEPT_OBJECT: {
         size_t size = lept_get_object_size(v);
         PUTC(c, '{');
-        for(size_t i = 0; i < size - 1; i ++) {
+        for(size_t i = 0; (size > 0) && (i < size - 1); i ++) {
             PUTKV(c, v, i);
             PUTC(c, ',');
         }
@@ -682,7 +700,7 @@ static int lept_stringify_value(lept_context* c, lept_value* v) {
         break;
     }
 
-    default: assert(0);
+    default: ret = LEPT_STRINGIFY_UNKNOWN_TYPE; break;
 
     }
 

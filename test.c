@@ -271,20 +271,20 @@ static void test_parse_array() {
 	ret_parse = lept_parse(&v, "[55.123, 122.1, 3.12, 4]");
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
-	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(&v, 0)->number.v);
-	EXPECT_EQ_DOUBLE(122.1, lept_get_array_element(&v, 1)->number.v);
-	EXPECT_EQ_DOUBLE(3.12, lept_get_array_element(&v, 2)->number.v);
-	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->number.v);
+	EXPECT_EQ_DOUBLE(55.123, lept_get_number(lept_get_array_element(&v, 0)));
+	EXPECT_EQ_DOUBLE(122.1, lept_get_number(lept_get_array_element(&v, 1)));
+	EXPECT_EQ_DOUBLE(3.12, lept_get_number(lept_get_array_element(&v, 2)));
+	EXPECT_EQ_DOUBLE(4.0, lept_get_number(lept_get_array_element(&v, 3)));
 	lept_free(&v);
 
 	lept_init(&v);
 	ret_parse = lept_parse(&v, "[       1,true, null,4    ]");
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
-	EXPECT_EQ_DOUBLE(1.0f, lept_get_array_element(&v, 0)->number.v);
+	EXPECT_EQ_DOUBLE(1.0f, lept_get_number(lept_get_array_element(&v, 0)));
 	EXPECT_EQ_INT(1, lept_get_boolean(lept_get_array_element(&v, 1)));
 	EXPECT_EQ_TEST(LEPT_NULL, lept_get_type(lept_get_array_element(&v, 2)), lept_type_string);
-	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->number.v);
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_number(lept_get_array_element(&v, 3)));
 	lept_free(&v);
 
 	lept_init(&v);
@@ -293,8 +293,8 @@ static void test_parse_array() {
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
 	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
 	EXPECT_EQ_STRING("\xF0\x9D\x84\x9E", lept_get_string(lept_get_array_element(&v, 1)), 7);
-	EXPECT_EQ_DOUBLE(3.0f, lept_get_array_element(&v, 2)->number.v);
-	EXPECT_EQ_DOUBLE(4.0f, lept_get_array_element(&v, 3)->number.v);
+	EXPECT_EQ_DOUBLE(3.0f, lept_get_number(lept_get_array_element(&v, 2)));
+	EXPECT_EQ_DOUBLE(4.0f, lept_get_number(lept_get_array_element(&v, 3)));
 	lept_free(&v);
 
 	lept_init(&v);
@@ -302,11 +302,10 @@ static void test_parse_array() {
 	EXPECT_EQ_TEST(LEPT_PARSE_OK, ret_parse, lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(4, lept_get_array_size(&v));
 	EXPECT_EQ_STRING("13fas", lept_get_string(lept_get_array_element(&v, 0)), 7);
-	lept_value* v2 = lept_get_array_element(&v, 1);
-	EXPECT_EQ_DOUBLE(1.0, lept_get_array_element(v2, 0)->number.v);
-	EXPECT_EQ_DOUBLE(55.123, lept_get_array_element(v2, 1)->number.v);
-	EXPECT_EQ_DOUBLE(3.0, lept_get_array_element(&v, 2)->number.v);
-	EXPECT_EQ_DOUBLE(4.0, lept_get_array_element(&v, 3)->number.v);
+	EXPECT_EQ_DOUBLE(1.0, lept_get_number(lept_get_array_element(lept_get_array_element(&v, 1), 0)));
+	EXPECT_EQ_DOUBLE(55.123, lept_get_number(lept_get_array_element(lept_get_array_element(&v, 1), 1)));
+	EXPECT_EQ_DOUBLE(3.0, lept_get_number(lept_get_array_element(&v, 2)));
+	EXPECT_EQ_DOUBLE(4.0, lept_get_number(lept_get_array_element(&v, 3)));
 	lept_free(&v);
 }
 
@@ -327,8 +326,8 @@ static void test_parse_object() {
 
     EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
 	EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
-    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
-	EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+    EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 0)), lept_type_string);
+	EXPECT_EQ_DOUBLE(1.0f, lept_get_number(lept_get_object_value(&v, 0)));
 
     lept_free(&v);
 
@@ -342,12 +341,12 @@ static void test_parse_object() {
 
     EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
     EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
-    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
-    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+    EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 0)), lept_type_string);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_number(lept_get_object_value(&v, 0)));
 
     EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
     EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
-    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_TEST(LEPT_TRUE, lept_get_type(lept_get_object_value(&v, 1)), lept_type_string);
     EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
 
     lept_free(&v);
@@ -362,17 +361,17 @@ static void test_parse_object() {
 
     EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
     EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
-    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
-    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+    EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 0)), lept_type_string);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_number(lept_get_object_value(&v, 0)));
 
     EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
     EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
-    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_TEST(LEPT_TRUE, lept_get_type(lept_get_object_value(&v, 1)), lept_type_string);
     EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
 
     EXPECT_EQ_SIZE_T(6, lept_get_object_key_length(&v, 2));
     EXPECT_EQ_STRING("key123", lept_get_object_key(&v, 2), 6);
-    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_object_value(&v, 2)->type);
+    EXPECT_EQ_TEST(LEPT_ARRAY, lept_get_type(lept_get_object_value(&v, 2)), lept_type_string);
 
     lept_free(&v);
 
@@ -386,21 +385,21 @@ static void test_parse_object() {
 
     EXPECT_EQ_SIZE_T(4, lept_get_object_key_length(&v, 0));
     EXPECT_EQ_STRING("key1", lept_get_object_key(&v, 0), 4);
-    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_object_value(&v, 0)->type);
-    EXPECT_EQ_DOUBLE(1.0f, lept_get_object_value(&v, 0)->number.v);
+    EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 0)), lept_type_string);
+    EXPECT_EQ_DOUBLE(1.0f, lept_get_number(lept_get_object_value(&v, 0)));
 
     EXPECT_EQ_SIZE_T(5, lept_get_object_key_length(&v, 1));
     EXPECT_EQ_STRING("key22", lept_get_object_key(&v, 1), 5);
-    EXPECT_EQ_INT(LEPT_TRUE, lept_get_object_value(&v, 1)->type);
+    EXPECT_EQ_TEST(LEPT_TRUE, lept_get_type(lept_get_object_value(&v, 1)), lept_type_string);
     EXPECT_EQ_INT(1, lept_get_boolean(lept_get_object_value(&v, 1)));
 
     EXPECT_EQ_SIZE_T(6, lept_get_object_key_length(&v, 2));
     EXPECT_EQ_STRING("key123", lept_get_object_key(&v, 2), 6);
-    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_object_value(&v, 2)->type);
+    EXPECT_EQ_TEST(LEPT_ARRAY, lept_get_type(lept_get_object_value(&v, 2)), lept_type_string);
 
     EXPECT_EQ_SIZE_T(7, lept_get_object_key_length(&v, 3));
     EXPECT_EQ_STRING("key1234", lept_get_object_key(&v, 3), 7);
-    EXPECT_EQ_INT(LEPT_OBJECT, lept_get_object_value(&v, 3)->type);
+    EXPECT_EQ_TEST(LEPT_OBJECT, lept_get_type(lept_get_object_value(&v, 3)), lept_type_string);
     EXPECT_EQ_SIZE_T(1, lept_get_object_size(lept_get_object_value(&v, 3)));
     EXPECT_EQ_SIZE_T(3, lept_get_object_key_length(lept_get_object_value(&v, 3), 0));
     EXPECT_EQ_STRING("kkk", lept_get_object_key(lept_get_object_value(&v, 3), 0), 3);
@@ -408,7 +407,7 @@ static void test_parse_object() {
     lept_free(&v);
 
     lept_init(&v);
-    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v,
+    EXPECT_EQ_TEST(LEPT_PARSE_OK, lept_parse(&v,
         " { "
         "\"n\" : null , "
         "\"f\" : false , "
@@ -418,38 +417,38 @@ static void test_parse_object() {
         "\"a\" : [ 1, 2, 3 ],"
         "\"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }"
         " } "
-    ));
-    EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(&v));
+    ), lept_parse_xxx_string);
+    EXPECT_EQ_TEST(LEPT_OBJECT, lept_get_type(&v), lept_type_string);
     EXPECT_EQ_SIZE_T(7, lept_get_object_size(&v));
     EXPECT_EQ_STRING("n", lept_get_object_key(&v, 0), lept_get_object_key_length(&v, 0));
-    EXPECT_EQ_INT(LEPT_NULL,   lept_get_type(lept_get_object_value(&v, 0)));
+    EXPECT_EQ_TEST(LEPT_NULL,   lept_get_type(lept_get_object_value(&v, 0)), lept_type_string);
     EXPECT_EQ_STRING("f", lept_get_object_key(&v, 1), lept_get_object_key_length(&v, 1));
-    EXPECT_EQ_INT(LEPT_FALSE,  lept_get_type(lept_get_object_value(&v, 1)));
+    EXPECT_EQ_TEST(LEPT_FALSE,  lept_get_type(lept_get_object_value(&v, 1)), lept_type_string);
     EXPECT_EQ_STRING("t", lept_get_object_key(&v, 2), lept_get_object_key_length(&v, 2));
-    EXPECT_EQ_INT(LEPT_TRUE,   lept_get_type(lept_get_object_value(&v, 2)));
+    EXPECT_EQ_TEST(LEPT_TRUE,   lept_get_type(lept_get_object_value(&v, 2)), lept_type_string);
     EXPECT_EQ_STRING("i", lept_get_object_key(&v, 3), lept_get_object_key_length(&v, 3));
-    EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 3)));
+    EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(lept_get_object_value(&v, 3)), lept_type_string);
     EXPECT_EQ_DOUBLE(123.0, lept_get_number(lept_get_object_value(&v, 3)));
     EXPECT_EQ_STRING("s", lept_get_object_key(&v, 4), lept_get_object_key_length(&v, 4));
-    EXPECT_EQ_INT(LEPT_STRING, lept_get_type(lept_get_object_value(&v, 4)));
+    EXPECT_EQ_TEST(LEPT_STRING, lept_get_type(lept_get_object_value(&v, 4)), lept_type_string);
     EXPECT_EQ_STRING("abc", lept_get_string(lept_get_object_value(&v, 4)), lept_get_string_length(lept_get_object_value(&v, 4)));
     EXPECT_EQ_STRING("a", lept_get_object_key(&v, 5), lept_get_object_key_length(&v, 5));
-    EXPECT_EQ_INT(LEPT_ARRAY, lept_get_type(lept_get_object_value(&v, 5)));
+    EXPECT_EQ_TEST(LEPT_ARRAY, lept_get_type(lept_get_object_value(&v, 5)), lept_type_string);
     EXPECT_EQ_SIZE_T(3, lept_get_array_size(lept_get_object_value(&v, 5)));
     for(i = 0; i < 3; i++) {
         lept_value* e = lept_get_array_element(lept_get_object_value(&v, 5), i);
-        EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(e));
+        EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(e), lept_type_string);
         EXPECT_EQ_DOUBLE(i + 1.0, lept_get_number(e));
     }
     EXPECT_EQ_STRING("o", lept_get_object_key(&v, 6), lept_get_object_key_length(&v, 6));
     {
         lept_value* o = lept_get_object_value(&v, 6);
-        EXPECT_EQ_INT(LEPT_OBJECT, lept_get_type(o));
+        EXPECT_EQ_TEST(LEPT_OBJECT, lept_get_type(o), lept_type_string);
         for(i = 0; i < 3; i++) {
             lept_value* ov = lept_get_object_value(o, i);
             EXPECT_TRUE('1' + i == lept_get_object_key(o, i)[0]);
             EXPECT_EQ_SIZE_T(1, lept_get_object_key_length(o, i));
-            EXPECT_EQ_INT(LEPT_NUMBER, lept_get_type(ov));
+            EXPECT_EQ_TEST(LEPT_NUMBER, lept_get_type(ov), lept_type_string);
             EXPECT_EQ_DOUBLE(i + 1.0, lept_get_number(ov));
         }
     }
@@ -641,7 +640,7 @@ static void test_access_array() {
 	lept_value v;
 
 	lept_init(&v);
-	EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "[ ]"));
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, lept_parse(&v, "[ ]"), lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(0, lept_get_array_size(&v));
 	lept_free(&v);
 }
@@ -652,7 +651,7 @@ static void test_access_object() {
 	lept_value v;
 
 	lept_init(&v);
-	EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "{}"));
+	EXPECT_EQ_TEST(LEPT_PARSE_OK, lept_parse(&v, "{}"), lept_parse_xxx_string);
 	EXPECT_EQ_SIZE_T(0, lept_get_object_size(&v));
 	lept_free(&v);
 }
@@ -681,53 +680,80 @@ static void test_parse() {
     test_access_object();
 }
 
-#define TEST_ROUNDTRIP(json, len) \
+#define TEST_ROUNDTRIP(json) \
     do { \
         char* r_json; \
-        size_t r_len; \
         int ret; \
+        size_t r_len; \
         lept_value v; \
         lept_init(&v); \
         ret = lept_parse(&v, json); \
-        EXPECT_EQ_INT(LEPT_PARSE_OK, ret); \
+        EXPECT_EQ_TEST(LEPT_PARSE_OK, ret, lept_parse_xxx_string); \
         ret = lept_stringify(&v, &r_json, &r_len); \
         EXPECT_EQ_INT(LEPT_STRINGIFY_OK, ret); \
-        EXPECT_EQ_SIZE_T(len, r_len); \
         EXPECT_EQ_STRING(json, r_json, r_len); \
+        free(r_json); \
     } while(0)
+
+static void test_stringify_number() {
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
+
+    TEST_ROUNDTRIP("0");
+    TEST_ROUNDTRIP("-0");
+    TEST_ROUNDTRIP("1");
+    TEST_ROUNDTRIP("-1");
+    TEST_ROUNDTRIP("1.5");
+    TEST_ROUNDTRIP("-1.5");
+    TEST_ROUNDTRIP("3.25");
+    TEST_ROUNDTRIP("1e+20");
+    TEST_ROUNDTRIP("1.234e+20");
+    TEST_ROUNDTRIP("1.234e-20");
+
+    TEST_ROUNDTRIP("1.0000000000000002"); /* the smallest number > 1 */
+    TEST_ROUNDTRIP("4.9406564584124654e-324"); /* minimum denormal */
+    TEST_ROUNDTRIP("-4.9406564584124654e-324");
+    TEST_ROUNDTRIP("2.2250738585072009e-308");  /* Max subnormal double */
+    TEST_ROUNDTRIP("-2.2250738585072009e-308");
+    TEST_ROUNDTRIP("2.2250738585072014e-308");  /* Min normal positive double */
+    TEST_ROUNDTRIP("-2.2250738585072014e-308");
+    TEST_ROUNDTRIP("1.7976931348623157e+308");  /* Max double */
+    TEST_ROUNDTRIP("-1.7976931348623157e+308");
+}
+
+static void test_stringify_string() {
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
+
+    TEST_ROUNDTRIP("\"\"");
+    TEST_ROUNDTRIP("\"Hello\"");
+    TEST_ROUNDTRIP("\"Hello\\nWorld\"");
+    TEST_ROUNDTRIP("\"\\\" \\\\ / \\b \\f \\n \\r \\t\"");
+    TEST_ROUNDTRIP("\"Hello\\u0000World\"");
+}
+
+static void test_stringify_array() {
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
+
+    TEST_ROUNDTRIP("[]");
+    TEST_ROUNDTRIP("[null,false,true,123,\"abc\",[1,2,3]]");
+}
+
+static void test_stringify_object() {
+    fprintf_warn(stdout, " => %s starts...\n", __func__);
+
+    TEST_ROUNDTRIP("{}");
+    TEST_ROUNDTRIP("{\"n\":null,\"f\":false,\"t\":true,\"i\":123,\"s\":\"abc\",\"a\":[1,2,3],\"o\":{\"1\":1,\"2\":2,\"3\":3}}");
+}
 
 static void test_stringify() {
     fprintf_color(GREEN, stdout,  "== %s starts...\n", __func__);
 
-    TEST_ROUNDTRIP("null", 4);
-    TEST_ROUNDTRIP("true", 4);
-    TEST_ROUNDTRIP("false", 5);
-    TEST_ROUNDTRIP("1", 1);
-    TEST_ROUNDTRIP("1.21312", 7);
-    // TEST_ROUNDTRIP("1e-20", 5);
-    TEST_ROUNDTRIP("\"1234\"", 6);
-    TEST_ROUNDTRIP("\"1234 true\"", 11);
-    TEST_ROUNDTRIP("\"1234 null\"", 11);
-    // TEST_ROUNDTRIP("\"1234 \\u1234\"", 12);
-    // TEST_ROUNDTRIP("\"1234 \\u0821 false\"", 12);
-    TEST_ROUNDTRIP("[1,2,3]", 7);
-    TEST_ROUNDTRIP("[1,null,false]", 14);
-    TEST_ROUNDTRIP("[1,\"1234 null\"]", 15);
-    TEST_ROUNDTRIP("[1,\"1234 null\",[1,2]]", 21);
-    TEST_ROUNDTRIP("{\"1\":1,\"222\":2,\"3\":[1,2,3],\"4\":4}",33);
-
-
-    // TEST_STRING("12SDFE3", "\"12SDFE3\"");
-    // TEST_STRING("12ASDF\"AS3", "\"12ASDF\\\"AS3\"");
-    // TEST_STRING("Hello\nWorld", "\"Hello\\nWorld\"");
-    // TEST_STRING("\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"");
-    // TEST_STRING("\x00\x01\x12", "\"\\u0000\\u0123\\u1234\"");
-    // TEST_STRING("\x24", "\"\\u0024\"");         /* Dollar sign U+0024 */
-    // TEST_STRING("\xC2\xA2", "\"\\u00A2\"");     /* Cents sign U+00A2 */
-    // TEST_STRING("\xE2\x82\xAC", "\"\\u20AC\""); /* Euro sign U+20AC */
-    // TEST_STRING("\xF0\x9D\x84\x9E", "\"\\uD834\\uDD1E\"");  /* G clef sign U+1D11E */
-    // TEST_STRING("\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\"");  /* G clef sign U+1D11E */
-
+    TEST_ROUNDTRIP("null");
+    TEST_ROUNDTRIP("false");
+    TEST_ROUNDTRIP("true");
+    test_stringify_number();
+    test_stringify_string();
+    test_stringify_array();
+    test_stringify_object();
 }
 
 /* main */
